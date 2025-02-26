@@ -1,0 +1,53 @@
+name: Deploy MSK Admin Role
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:  # Allows manual triggering
+
+permissions:
+  id-token: write   # This is required for requesting the JWT
+  contents: read    # This is required for actions/checkout
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      
+      - name: Setup Node.js (needed for CDK)
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: arn:aws:iam::390402559041:role/GitHubActionsCDKDeployRole
+          aws-region: us-east-1
+      
+      - name: Install dependencies
+        run: |
+          npm install -g aws-cdk
+          pip install -r requirements.txt
+      
+      - name: Setup constants file with IAM user ARN
+        run: |
+          echo "# IAM user and role configurations" > constants.py
+          echo "IAM_USER_ARN = \"${{ secrets.IAM_USER_ARN }}\"" >> constants.py
+          echo "# Other constants can be added here" >> constants.py
+          cat constants.py
+      
+      - name: CDK Bootstrap (if necessary)
+        run: cdk bootstrap
+      
+      - name: CDK Deploy
+        run: cdk deploy --require-approval never
