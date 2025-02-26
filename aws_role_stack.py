@@ -4,8 +4,8 @@ from aws_cdk import (
     CfnOutput
 )
 from constructs import Construct
-from constants import IAM_USER_ARN
-
+#from constants import IAM_USER_ARN
+IAM_USER_ARN = "arn:aws:iam::390402559041:user/cdk-workshop"
 class MskAdminRoleStack(Stack):
     def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
